@@ -20,7 +20,7 @@ It's a sad day.  For years I've used Docker Desktop both personally and professi
 
 Apparently I've had my head in the sand.  Well, not really - it's a byproduct of being extremely busy and very laser-focused on specific objectives.  It happens to us all.  Regardless, yesterday I was alerted by Docker Desktop that there were changes made to the license.  At first I wasn't too concerned, after all, so many know and love Docker - there's no way they'd alienate their user base, right?!  Wrong.
 
-In case you too have been in the dark, check out the [Docker FAQs](https://www.docker.com/pricing/faq) for info on how and why they've changed their licensing.  Suffice it to say that I don't appreciate bait-and-switch tactics from *any* vendor, so I am saying "goodbye" to Docker.  It's been a good run.  A long run.  But it's time we part ways.
+In case you too have been in the dark, check out the [Docker FAQs](https://www.docker.com/pricing/faq) for info on how and why they've changed their licensing.  Suffice it to say that I don't appreciate the move from freemium to paid (from *any* vendor), so I am saying "goodbye" to Docker.  It's been a good run.  A long run.  But it's time we part ways.
 
 ## Making the separation
 It's hard to get rid of a tool that I've loved so much over the years.  Uninstalling it on MacOS was easy, following the [official uninstallation directions](https://docs.docker.com/desktop/mac/install/#uninstall-docker-desktop).  Following the directions, I patiently waited.  Maybe I had a lot of images... it took a short eternity (at least felt like it).  Had to tell uninstall it twice (the first time it didn't complete), then thankfully there were no issues in uninstalling it.
@@ -97,12 +97,16 @@ EOF
   SHELL
   
   config.vm.synced_folder "/Users", "/Users"
+  
+  config.vm.network "forwarded_port", guest: 4000, host: 4000
 end
 ```
 
 There are a few things to notice here.  First, the mounts.  See [this blog](https://www.danielstechblog.io/running-podman-on-macos-with-multipass/) for what one person did, using [multipass](https://multipass.run).  Since we're using Vagrant, VirtualBox and Oracle Linux, we need to do this a bit differently.  [Vagrant sync'd folders](https://www.vagrantup.com/docs/synced-folders/basic_usage) is here to save the day!  You might not want to mount `/Users` as I did (on the `config.vm.synced_folder` line).  Make sure to modify as you need...
 
 The second thing is SELinux.  While it's great, if left on (and/or unconfigured further), file sharing (with containers) will not work.  I went the easy route and simply disabled it altogether.  Maybe you don't want this... maybe it's not a good idea.  Your mileage may vary.  One caveat with this approach is that SELinux will be disabled upon the *second* bootup of the VM.  That's because the `/etc/selinux/config` file is modified upon the *first* bootup of the VM, but since this is read at boot time, it doesn't take effect until the *second* boot of the VM.  Just be forewarned.  :)
+
+Last call-out on the above config is the usage of the "forwarded_port" setting.  You'll need to configure any forwarded ports that might be needed, both at the Vagrant (VM) level as well as at the container (runtime) level.  This is because the container is running within the context of the VM, not the local machine.  It's the same with storage.  Not pretty, but it works!  In this example, we're exposing port 4000 on the VM, to the local machine.  You'll want to change/modify this as-needed for the container(s) you'll be running.
 
 From within the `~/tools/podman` directory, I issued `vagrant up` and waited for it to download and provision.  For grins, I wanted to make sure that my mount was successful, so I connected to the newly minted VM to check it out:
 

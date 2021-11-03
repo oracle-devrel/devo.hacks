@@ -82,6 +82,10 @@ SocketMode=0660
 SocketUser=root
 SocketGroup=podman
 EOF
+    cat >/etc/selinux/config <<EOF
+SELINUX=disabled
+SELINUXTYPE=targeted
+EOF
     systemctl daemon-reload
     echo "d /run/podman 0770 root podman" > /etc/tmpfiles.d/podman.conf
     sudo systemd-tmpfiles --create
@@ -96,7 +100,9 @@ EOF
 end
 ```
 
-This is great, but it is missing the mount(s), which we really need/want if we want to share files between the host and containers.  See [this blog](https://www.danielstechblog.io/running-podman-on-macos-with-multipass/) for what one person did, using [multipass](https://multipass.run).  Since we're using Vagrant, VirtualBox and Oracle Linux, we need to do this a bit differently.  [Vagrant sync'd folders](https://www.vagrantup.com/docs/synced-folders/basic_usage) is here to save the day!  Make sure to modify as you need...
+There are a few things to notice here.  First, the mounts.  See [this blog](https://www.danielstechblog.io/running-podman-on-macos-with-multipass/) for what one person did, using [multipass](https://multipass.run).  Since we're using Vagrant, VirtualBox and Oracle Linux, we need to do this a bit differently.  [Vagrant sync'd folders](https://www.vagrantup.com/docs/synced-folders/basic_usage) is here to save the day!  You might not want to mount `/Users` as I did (on the `config.vm.synced_folder` line).  Make sure to modify as you need...
+
+The second thing is SELinux.  While it's great, if left on (and/or unconfigured further), file sharing (with containers) will not work.  I went the easy route and simply disabled it altogether.  Maybe you don't want this... maybe it's not a good idea.  Your mileage may vary.  One caveat with this approach is that SELinux will be disabled upon the *second* bootup of the VM.  That's because the `/etc/selinux/config` file is modified upon the *first* bootup of the VM, but since this is read at boot time, it doesn't take effect until the *second* boot of the VM.  Just be forewarned.  :)
 
 From within the `~/tools/podman` directory, I issued `vagrant up` and waited for it to download and provision.  For grins, I wanted to make sure that my mount was successful, so I connected to the newly minted VM to check it out:
 

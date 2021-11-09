@@ -63,7 +63,7 @@ Took the config from [this blog](https://www.redhat.com/sysadmin/replace-docker-
 
 ```
 Vagrant.configure("2") do |config|
-  config.vm.box = "generic/oracle8"
+  config.vm.box = "oraclelinux/8"
   config.vm.box_url = "https://oracle.github.io/vagrant-projects/boxes/oraclelinux/8.json"
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "2048"
